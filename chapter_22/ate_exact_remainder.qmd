@@ -1,0 +1,38 @@
+---
+title: "Practical implications of the score representation for the exact remainder: an ATE example"
+format: html
+---
+
+## Score representation for the exact remainder of ATE
+
+Suppose we have observed data $O=(W,A,Y)\sim P_0\in\mathcal{M}$, where $W\in\mathbb{R}^d$ is a vector of pre-treatment covariates, $A\in \{0,1\}$ is a binary treatment, $Y\in\mathbb{R}$ is an outcome of interest, and $P_0$ is the data-generating distribution. We assume a nonparametric statistical model $\mathcal{M}$. Let $g_P(W)=P(A=1\mid W)$ and $\bar{Q}_P(A,W)=E_P(Y\mid A,W)$. Consider the ATE target parameter
+$$\Psi(P)=\Psi^{(1)}(P)-\Psi^{(0)}(P)=E_PQ_P(1,W)-E_PQ_P(0,W).$$
+We first focus on the treatment-specific mean part of the ATE, i.e., $\Psi^{(1)}(P)$. We have derived previously that the exact remainder of $\Psi^{(1)}$ is given by
+$$R^{(1)}(P,P_0)=P_0\left\{\frac{g-g_0}{g}(1\mid W)(\bar{Q}-\bar{Q}_0)(1,W)\right\}.$$
+Now, our goal is to write it as a score at $\bar{Q}(A,W)$. Let
+$$h^{(1)}(g,g_0)(A,W)=-A\cdot \frac{g-g_0}{gg_0}(1\mid W)\quad\text{and}\quad
+S_{h^{(1)}(g,g_0)(A,W)}(\bar{Q})=h^{(1)}(g,g_0)(A,W)(Y-\bar{Q}_0(A,W)).$$
+We could show that $R^{(1)}(P,P_0)=P_0S_{h(g,g_0)(A,W)}(\bar{Q})$ by using the law of iterated expectation, first taking expectation conditional on $(W,A)$, then on $W$. Specifically, \begin{align*}
+P_0S_{h^{(1)}(g,g_0)(A,W)}(\bar{Q})&=-P_0\left\{\frac{g-g_0}{gg_0}(1\mid W)A\cdot P_0\left[Y-\bar{Q}(A,W)\mid A,W\right]\right\}\\
+&=P_0\left\{\frac{g-g_0}{gg_0}(1\mid W)A(\bar{Q}-\bar{Q}_0)(A,W)\right\}\\
+&=P_0\left\{\frac{g-g_0}{g}(1\mid W)(\bar{Q}-\bar{Q}_0)(1,W)\right\}=R^{(1)}(P,P_0).
+\end{align*} We could also write $R^{(1)}(P,P_0)$ as a score at $g(1\mid W)$. Let
+$$h^{(1)}(\bar{Q},\bar{Q}_0)(W)=-\frac{(\bar{Q}-\bar{Q}_0)(1,W)}{g(1\mid W)}\quad\text{and}\quad
+S_{h^{(1)}(\bar{Q}-\bar{Q}_0)(W)}(g)=h^{(1)}(\bar{Q},\bar{Q}_0)(W)(A-g(1\mid W)).$$
+We could again use the law of iterated expectation, taking expectation conditional on $W$, to show that $R^{(1)}(P,P_0)=P_0S_{h(\bar{Q}-\bar{Q}_0)(W)}(g)$. Specifically, \begin{align*}
+P_0S_{h^{(1)}(\bar{Q}-\bar{Q}_0)(W)}(g)&=-P_0\left\{\frac{(\bar{Q}-\bar{Q}_0)(1,W)}{g(1\mid W)}(A-g(1\mid W))\right\}\\
+&=-P_0\left\{\frac{(\bar{Q}-\bar{Q}_0)(1,W)}{g(1\mid W)}(g_0-g)(1\mid W)\right\}\\
+&=P_0\left\{\frac{g-g_0}{g}(1\mid W)(\bar{Q}-\bar{Q}_0)(1,W)\right\}=R^{(1)}(P,P_0)
+\end{align*} Similarly, for $\Psi^{(0)}(P_0)$, let \begin{align*}
+h^{(0)}(g,g_0)(A,W)=(A-1)\cdot\frac{g-g_0}{gg_0}(0\mid W),&\quad
+S_{h^{(0)}(g,g_0)(A,W)}=h^{(0)}(g,g_0)(A,W)(Y-\bar{Q}(A,W));\\
+h^{(0)}(\bar{Q},\bar{Q}_0)(W)=\frac{(\bar{Q}-\bar{Q}_0)(0,W)}{g(0\mid W)},&\quad
+S_{h^{(0)}(\bar{Q},\bar{Q}_0)(W)}=h^{(0)}(\bar{Q},\bar{Q}_0)(W)(A-g(1\mid W)).
+\end{align*} We could show that
+$$R^{(0)}(P,P_0)=P_0S_{h_{(g,g_0)}(A,W)}=P_0S_{h_{(\bar{Q},\bar{Q}_0)}(A,W)}=P_0\left\{\frac{g-g_0}{g}(0\mid W)(\bar{Q}-\bar{Q}_0)(0,W)\right\}.$$
+Therefore, we have that the exact remainder $R(P,P_0)$ of the ATE parameter has score representations \begin{align*}
+R(P,P_0)&=P_0\left\{S_{h^{(1)}(g,g_0)(A,W)}(\bar{Q})-S_{h^{(0)}(g,g_0)(A,W)}(\bar{Q})\right\}\quad\text{and}\\
+R(P,P_0)&=P_0\left\{S_{h^{(1)}(\bar{Q}-\bar{Q}_0)(W)}(g)-S_{h^{(0)}(\bar{Q}-\bar{Q}_0)(W)}(g)\right\},
+\end{align*} where the first form is a score at $\bar{Q}(A,W)$ and the second form is a score at $g(1\mid W)$.
+
+In the ATE example, we saw that the exact remainder can be expressed as a score, suggesting that a TMLE update step which preserves the score equations already solved by the initial HAL may be beneficial. The linear span of these scores may approximate the exact remainder well, thereby helping to eliminate it. Up next is a tutorial on implementing such score-preserving TMLEs: [Implementing Score-Preserving TMLEs](score_preserving_tmle.qmd)

@@ -1,0 +1,22 @@
+project:
+  type: website
+  resources:
+    - chapter_2/conditional_density_estimation/sim_data.R
+    - chapter_2/cate_estimation/sim_data.R
+
+website:
+  title: "The Highly Adaptive Lasso and Targeted Learning"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true
+
+editor: visual

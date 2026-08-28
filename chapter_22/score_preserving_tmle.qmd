@@ -1,0 +1,58 @@
+---
+title: "Implementing Score-Preserving TMLEs"
+format: html
+---
+
+### Introduction
+
+In the previous average treatment effect (ATE) example, we saw that the exact remainder term, central to establishing the asymptotic efficiency of TMLE, admits a score representation. This observation suggests that a TMLE update step that preserves the score equations already solved by the initial estimator may help fight the finite sample curse-of-dimensionality, as the linear span of these scores could approximate the exact remainder well and help control it in finite sample. In this tutorial, we discuss several variants of TMLE that possess this score-preserving property, along with their practical implementation. Throughout, we assume we observe i.i.d. data $O_1,\dots,O_n\sim P$, where each unit $O=(W,A,Y)$ consists of baseline covariates $W$, a binary treatment $A$, and an outcome $Y$. Our target parameter $\Psi:\mathcal{M}\rightarrow\mathbb{R}$ is again the ATE $\Psi(P)=E_P[Y(1)-Y(0)].$
+
+### A score-preserving HAL-TMLE with the clever covariate as an additional basis
+
+The goal of the TMLE targeting step is to update the initial estimator such that the empirical mean of the efficient influence curve (EIC) evaluated at the targeted estimate is zero (or negligible). For the ATE, the EIC at a distribution $P\in\mathcal{M}$ is given by:
+$$D_P=H_P(A,W)(Y-\bar{Q}_P(A,W))+\bar{Q}_P(1,W)-\bar{Q}_P(0,W)-\Psi(P),$$
+where
+$$H_P(A,W)=\frac{A}{g_P(1\mid W)}-\frac{1-A}{g_P(0\mid W)}$$
+is referred to as the "clever covariate" in the TMLE literature. The reason is as follows: if we include $H_n(A,W)$ as an additional basis function in the HAL regression and exclude it from the $L_1$-penalty (i.e., assign it a penalty factor of zero), then the corresponding score equation solved by HAL is the empirical mean of the $Y$-component of the EIC.
+
+This insight motivates a natural score-preserving version of HAL-TMLE: augment the HAL basis library with an additional basis function $H_n(A,W)$, un-penalize its coefficient, and fit an lasso as usual. This approach is score-preserving, as it retains the penalized score equations already solved by HAL and additionally solves the empirical mean of the efficient influence curve. An \texttt{R} example of this method is provided in the R script xxx.R.
+
+### The (penalized) HAL-MLE scores
+
+Both the penalized and relaxed HAL-MLE solve scores. The scores solved by relaxed HAL-MLE are the familiar as in generalized linear models, in the form of basis function multiplied by the residuals, averaged over the samples. The scores solved by the penalized HAL fit are slightly different. In lasso literature, one often use Karush-Kuhn-Tucker (KKT) conditions, which are first-order necessary optimality conditions for a solution in nonlinear programming, to characterize the scores solved by the penalized HAL fit.
+
+We first define some notations. Let $\lambda$ be the $L_1$-norm penalty factor. Let $\text{sgn}()$ be the sign function. Let $\mathcal{R}_n$ be the active index set, that is, the indices of HAL basis functions with non-zero coefficients in the penalized HAL fit. Let $\beta_n(j)$ be the coefficient of the $j$-th HAL basis function in the penalized HAL fit. Let $\phi_j$ be the $j$-th HAL basis function. Define the score $S_j(Q)=\phi_j(Y-Q)$. Note that this score is the score solved by relaxed HAL-MLE, so we also refer to them as "relaxed" scores. The KKT optimality condition for the penalized HAL fit is given by
+$$\begin{cases}
+0=P_nS_j(Q_n)+\lambda\,\text{sgn}(\beta_n(j)) & j\in\mathcal{R}_n\\
+|P_nS_j(Q_n)|\leq \lambda & j\notin\mathcal{R}_n.
+\end{cases}$$
+
+### A score-preserving HAL-TMLE with orthogonalized clever covariate
+
+Another way to perform score-preserving HAL-TMLE is to orthogonalize the clever covariate with respect to the linear span of the scores already solved by the initial HAL-MLE. Specifically, one can subtract from the clever covariate its projection onto the initial lasso selected HAL basis functions, and then fluctuate the initial HAL-MLE fit only along this orthogonalized direction. Because the resulting clever covariate lies in the orthogonal complement of the previously solved score space, the fluctuation does not destroy the original scores, thus preserving the score equations while also solving the empirical mean of the EIC.
+
+Define $H_n^\perp$ as $H_n$ minus its projection onto the span of $\{\phi_j:j\in\mathcal{R}_n\}$ with a weighted inner product $\langle f,g\rangle_{n,w}=1/n\sum_{i=1}^nw_if_ig_i$, where the weights are $Q_n(1-Q_n)$. After the orthogonalization of $H$, the TMLE one-dimensional fluctuation submodel is
+$$\text{logit}\,Q_{n,\epsilon}=\text{logit}\,Q_n+\epsilon H_n^\perp,$$
+The pathwise derivative at $\epsilon=0$ is
+$$\frac{\partial Q_{n,\epsilon}}{\partial\epsilon}\biggr\rvert_{\epsilon=0}=Q_n(1-Q_n)H_n^\perp.$$
+For $j\in\mathcal{R}_n$, note that
+$$\frac{\partial}{\partial\epsilon}S_j(Q_{n,\epsilon})\biggr\rvert_{\epsilon=0}=P_n\left\{Q_n(1-Q_n)H_n^\perp\phi_j\right\}=\langle H_n^\perp,\phi_j\rangle_{n,w}.$$
+By the projection, we have $\langle H_n^\perp,\phi_j\rangle_{n,w}=0$ for all $j\in\mathcal{R}_n$. So the active set component of the KKT condition holds in first-order, showing that the TMLE update does not disturb the scores already solved by the penalized HAL fit, in first order. Intuitively, even though we did not orthogonalize the clever covariate wrt the penalized scores, we were still able to preserve the penalized scores because the penalized fit is already approximately solving the relaxed scores, up to a signed-$\lambda$, so the penalized scores are already close to the relaxed scores.
+
+### Other variants of score-preserving HAL-TMLEs
+
+So far, we have discussed two different score-preservng HAL-TMLEs. The first one is arguably the easiest to implement, as it simply involves augmenting the HAL design matrix with the clever covariate and excluding its coefficient from the $L_1$-penalty. The second one is slightly more involved, which involves orthogonalizing the clever covariate w.r.t. the HAL basis functions in the active set and then performing a one-dimensional fluctuation along this orthogonalized clever covariate. Besides these two strategies, there are also other variants of score-preserving TMLEs worth noting.
+
+For example, in [Pimentel, Schuler, and van der Laan (2025)](https://arxiv.org/abs/2502.00200), the authors use the initial HAL-MLE fit as an offset and perform a multivariate targeting step that aims to simultaneously solve both the score equations already solved by the initial HAL-MLE and the additional score equation associated with the clever covariate. This resembles the TMLE for targeting multidimensional parameters. Given an initial HAL-MLE $\bar{Q}_n$ for $\bar{Q}_0$, in a non-score-preserving TMLE, one would often consider the logistic fluctuation submodel given by
+$$\text{logit}\ \bar{Q}_n(A,W)=\text{logit}\ \bar{Q}_n(A,W)+\epsilon H_n(A,W).$$
+Now, for the score-preserving TMLE, we may consider the following fluctuation submodel
+$$\text{logit}\ \bar{Q}_n(A,W)=\text{logit}\ \bar{Q}_n(A,W)+\epsilon_0 H_n(A,W)+\sum_{j=1}^{|\mathcal{R}_n|}\epsilon_jS_j(A,W),$$
+where $\{S_j(A,W):j\}$ are the scores solved by the initial HAL-MLE fit $\bar{Q}_n$, either under the relaxed fit or the penalized fit and $\mathcal{R}_n$ is the active set. This submodel suggests the following procedure for the score-preserving TMLE update. One fits a logistic regression with no intercept, offset $\text{logit}\ \bar{Q}_n$ with covariates $H_n$ and $S_j$, $j=1,\dots,|\mathcal{R}_n|$. However, the information matrix of this regression might be near singular in the presence of highly correlated covariates, which can lead to numerical instability. To address this, we could consider taking small steps in the fluctuation submodel. This is known as a one-step TMLE update as theoretically it guarantees convergence in one-step. But in practice, it is often implemented by locally tracking this local least favorable path in small steps. So, we could take a small value $\delta$ and define
+$$\epsilon=\delta\cdot\frac{P_nS_n}{||P_nS_n||},$$
+where
+$$S_n=P_n\Phi_n^\top(Y-\bar{Q}_n).$$
+We then update $\bar{Q}_n$ and iterate until each of these score equations are solved to the desired level.
+
+### Concluding remarks
+
+In this tutorial, we have discussed several variants of score-preserving TMLEs based on HAL. The first variant is the simplest to implement, while the second one is slightly more involved but still straightforward. We also mentioned other variants that involve a multivariate targeting step or a one-step update along the local least favorable path. These methods are useful in practice, as they help to preserve the scores already solved by the initial estimator while also solving the empirical mean of the efficient influence curve. Due to the score-preserving property, these methods can help to fight the finite sample curse-of-dimensionality and improve the finite sample performance of TMLEs.

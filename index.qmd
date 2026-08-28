@@ -1,0 +1,37 @@
+---
+title: "Web materials"
+---
+
+### Chapter 2: Examples of Zero-order Highly Adaptive Lasso
+
+[Conditional density estimation using `haldensify`](chapter_2/conditional_density_estimation/haldensify.qmd)
+
+[Conditional treatment effect estimation with the HAL-based R-learner](chapter_2/cate_estimation/r_learner.qmd)
+
+### Chapter 7: Examples of EM-based HAL
+
+[Link to GitHub repo with code](https://github.com/yiberkeley/Ch7_EM_HAL)
+
+### Chapter 13: Constructing Confidence Intervals for Regression Functions with Applications to Conditional Average Treatment Effect Functions
+
+[Link to GitHub repo with code](https://github.com/WenxinZhang25/hal9001CI)
+
+### Chapter 17: Plug-in Estimation of the Causal Dose-Response Curve with HAL-MLEs
+
+[`halDRC`: Highly Adaptive Lasso-Based Estimation of Causal Dose-Response Curves](https://github.com/SeraphinaShi/halDRC)
+
+[`halDRC` demo: Dose-Response Estimation with HAL: Simulated and Real Data](https://seraphinashi.github.io/halDRC/halDRC-demo.html)
+
+### Chapter 22: Score Representation for the Exact Remainder
+
+[Practical implications of the score representation for the exact remainder: an ATE example](chapter_22/ate_exact_remainder.qmd)
+
+[Tutorial: Implementing score-preserving TMLEs](chapter_22/score_preserving_tmle.qmd)
+
+### Chapter 23: Adaptive MLE and adaptive TMLE
+
+[Augmenting a Randomized Trial with External Controls: A LaLonde A-TMLE Tutorial](chapter_23_amle_atmle/lalonde.qmd)
+
+### Chapter 24: Targeted EM-HAL
+
+COMING SOON
