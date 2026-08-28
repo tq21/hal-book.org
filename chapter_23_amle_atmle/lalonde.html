@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Augmenting a Randomized Trial with External Controls: A LaLonde A-TMLE Tutorial – The Highly Adaptive Lasso and Targeted Learning</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">The Highly Adaptive Lasso and Targeted Learning</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#why-a-tmle-can-help-to-improve-efficiency" id="toc-why-a-tmle-can-help-to-improve-efficiency" class="nav-link" data-scroll-target="#why-a-tmle-can-help-to-improve-efficiency">Why A-TMLE can help to improve efficiency</a>
+  <ul class="collapse">
+  <li><a href="#why-this-motivates-rct-augmentation" id="toc-why-this-motivates-rct-augmentation" class="nav-link" data-scroll-target="#why-this-motivates-rct-augmentation">Why this motivates RCT augmentation</a></li>
+  </ul></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#the-trial-and-external-data" id="toc-the-trial-and-external-data" class="nav-link" data-scroll-target="#the-trial-and-external-data">The trial and external data</a>
+  <ul class="collapse">
+  <li><a href="#variable-definitions" id="toc-variable-definitions" class="nav-link" data-scroll-target="#variable-definitions">Variable definitions</a></li>
+  <li><a href="#the-cps3-external-cohort" id="toc-the-cps3-external-cohort" class="nav-link" data-scroll-target="#the-cps3-external-cohort">The CPS3 external cohort</a></li>
+  </ul></li>
+  <li><a href="#descriptive-comparison" id="toc-descriptive-comparison" class="nav-link" data-scroll-target="#descriptive-comparison">Descriptive comparison</a></li>
+  <li><a href="#target-estimand" id="toc-target-estimand" class="nav-link" data-scroll-target="#target-estimand">Target estimand</a></li>
+  <li><a href="#randomized-trial-benchmarks" id="toc-randomized-trial-benchmarks" class="nav-link" data-scroll-target="#randomized-trial-benchmarks">Randomized-trial benchmarks</a>
+  <ul class="collapse">
+  <li><a href="#unadjusted-randomized-estimator" id="toc-unadjusted-randomized-estimator" class="nav-link" data-scroll-target="#unadjusted-randomized-estimator">Unadjusted randomized estimator</a></li>
+  <li><a href="#covariate-adjusted-tmle-using-only-the-rct" id="toc-covariate-adjusted-tmle-using-only-the-rct" class="nav-link" data-scroll-target="#covariate-adjusted-tmle-using-only-the-rct">Covariate-adjusted TMLE using only the RCT</a></li>
+  </ul></li>
+  <li><a href="#what-happens-under-naive-pooling" id="toc-what-happens-under-naive-pooling" class="nav-link" data-scroll-target="#what-happens-under-naive-pooling">What happens under naive pooling?</a></li>
+  <li><a href="#a-tmle-data-integration" id="toc-a-tmle-data-integration" class="nav-link" data-scroll-target="#a-tmle-data-integration">A-TMLE data integration</a>
+  <ul class="collapse">
+  <li><a href="#super-learner-specification" id="toc-super-learner-specification" class="nav-link" data-scroll-target="#super-learner-specification">Super Learner specification</a></li>
+  <li><a href="#reusable-fitting-function" id="toc-reusable-fitting-function" class="nav-link" data-scroll-target="#reusable-fitting-function">Reusable fitting function</a></li>
+  <li><a href="#fit-the-cps3-analysis" id="toc-fit-the-cps3-analysis" class="nav-link" data-scroll-target="#fit-the-cps3-analysis">Fit the CPS3 analysis</a></li>
+  </ul></li>
+  <li><a href="#comparing-all-estimators" id="toc-comparing-all-estimators" class="nav-link" data-scroll-target="#comparing-all-estimators">Comparing all estimators</a></li>
+  <li><a href="#scope-of-the-demonstration" id="toc-scope-of-the-demonstration" class="nav-link" data-scroll-target="#scope-of-the-demonstration">Scope of the demonstration</a></li>
+  <li><a href="#reproducibility-information" id="toc-reproducibility-information" class="nav-link" data-scroll-target="#reproducibility-information">Reproducibility information</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Augmenting a Randomized Trial with External Controls: A LaLonde A-TMLE Tutorial</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>In Chapter 22, we discussed the Adaptive TMLE (A-TMLE) as a general approach to regularize the targeting step of a TMLE. In this tutorial, we look at a particular application of that general theoretical framework. Specifically, we discuss an estimator constructed based on A-TMLE that augments the randomized trial data with external arms to improve efficiency.</p>
+<p>Randomized controlled trials (RCTs) provide internally valid treatment comparisons, but their precision is limited by the number of randomized participants. One possible way to improve precision is to supplement the randomized control arm with external controls. The difficulty is that external controls were not randomized and may differ from trial participants in both measured and unmeasured ways. Blindly pooling them with the randomized controls can therefore trade variance for substantial bias.</p>
+<p>In this tutorial, we consider the National Supported Work (NSW) experiment analyzed by Lalonde (1986) and Dehejia &amp; Wahba (1999). We retain both randomized NSW arms and consider augmenting the trial with CPS3, a nonexperimental control sample from the Current Population Survey (CPS). CPS3 contains unemployed men with low pre-program earnings, making it a plausible but still imperfect external comparison group for NSW participants.</p>
+<p>We compare:</p>
+<ul>
+<li>the unadjusted randomized difference in mean earnings;</li>
+<li>a covariate-adjusted TMLE using only randomized participants;</li>
+<li>naive pooling of randomized and CPS3 controls;</li>
+<li>an A-TMLE data integration estimator that augments the randomized trial with CPS3 and corrects for any biases from pooling of the external controls.</li>
+</ul>
+<p>Our goal is to explore and see whether an estimator based on A-TMLE can extract useful information from external controls to perform a favorable bias-variance trade-off and improve efficiency over trial-only estimators without inheriting the severe bias seen under naive pooling.</p>
+</section>
+<section id="why-a-tmle-can-help-to-improve-efficiency" class="level2">
+<h2 class="anchored" data-anchor-id="why-a-tmle-can-help-to-improve-efficiency">Why A-TMLE can help to improve efficiency</h2>
+<p>Let <span class="math inline">\(\mathcal{M}\)</span> denote the prespecified statistical model and let <span class="math inline">\(\Psi(P_0)\)</span> be the target parameter. A-TMLE learns a working model <span class="math inline">\(\mathcal{M}_n\)</span> that approximates an oracle model <span class="math inline">\(\mathcal{M}_0\subseteq\mathcal{M}\)</span> containing the true distribution <span class="math inline">\(P_0\)</span>. Rather than immediately targeting <span class="math inline">\(\Psi\)</span> over the whole model, it targets the data-adaptive projection parameter</p>
+<p><span class="math display">\[\Psi_{\mathcal{M}_n}(P)=\Psi\{\Pi_{\mathcal{M}_n}(P)\}.\]</span></p>
+<p>Under the oracle-approximation, remainder, and stability conditions developed in the A-TMLE chapter and van der Laan et al.&nbsp;(2024), the resulting estimator has the expansion</p>
+<p><span class="math display">\[\widehat\psi_{\mathrm{A\text{-}TMLE}}-\Psi(P_0)
+= (P_n-P_0)D_{\mathcal{M}_0,P_0}+o_P(n^{-1/2}),\]</span></p>
+<p>because <span class="math inline">\(P_0\in\mathcal{M}_0\)</span> implies <span class="math inline">\(\Psi_{\mathcal{M}_0}(P_0)=\Psi(P_0)\)</span>. Here, <span class="math inline">\(D_{\mathcal{M}_0,P_0}\)</span> is the efficient influence function for the oracle projection parameter; with a likelihood or likelihood-behaving loss, it is also the efficient influence function obtained by acting as if the oracle model had been known in advance.</p>
+<p>This leads to two useful regimes:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Limiting oracle model</th>
+<th>Asymptotic implication</th>
+<th>Finite-sample interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(\mathcal{M}_0=\mathcal{M}\)</span></td>
+<td>The influence function becomes the full-model efficient influence function, so the estimator is asymptotically regular and efficient in <span class="math inline">\(\mathcal{M}\)</span>.</td>
+<td>A smaller working model <span class="math inline">\(\mathcal{M}_n\)</span> may still regularize an unstable targeting step and trade a small projection or model-selection bias for lower variance. This can be favorable when the full-model influence function is highly variable or heavy-tailed.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\mathcal{M}_0\subsetneq\mathcal{M}\)</span></td>
+<td>If the oracle-model efficiency bound is smaller, the A-TMLE can have asymptotic variance at <span class="math inline">\(P_0\)</span> below the full-model efficiency bound. This super-efficiency is pointwise, as the estimator is regular for perturbations within the oracle model, but may have local asymptotic bias along nearby perturbations in the full model that leave the oracle model.</td>
+<td>The estimator adapts to a simpler structure and can deliver a real precision gain. However, such super-efficiency necessarily gives up regularity for the original target along local perturbations that leave <span class="math inline">\(\mathcal{M}_0\)</span>.</td>
+</tr>
+</tbody>
+</table>
+<p>For many generic data-generating distributions, the learned models are expected to grow toward the full model, so that <span class="math inline">\(\mathcal{M}_0=\mathcal{M}\)</span> is the ordinary limiting regime. The benefit therefore need not depend on a smaller oracle model, as finite-sample regularization may still improve the bias-variance trade-off. When <span class="math inline">\(\mathcal{M}_0\)</span> is truly smaller, a real oracle efficiency gain is possible, but it exhibits pointwise super-efficiency rather than full-model regularity.</p>
+<p>In some settings, it may be reasonable to trade a degree of regularity for improved efficiency. Regularity provides valuable robustness to local perturbations of the data-generating distribution, but that robustness may have limited practical value if every estimator that is regular over the full model is so variable that it has little power at the available sample size. A-TMLE provides a principled way to navigate this trade-off. By adapting to a data-driven working model, it can improve precision and power while retaining consistency, asymptotic linearity, and asymptotically valid pointwise inference under appropriate conditions.</p>
+<section id="why-this-motivates-rct-augmentation" class="level3">
+<h3 class="anchored" data-anchor-id="why-this-motivates-rct-augmentation">Why this motivates RCT augmentation</h3>
+<p>Data integration is a natural application of A-TMLE because external outcome data create an explicit bias–variance trade-off. Incorporating these data may reduce variance by increasing the available information, but differences between the trial and external populations may also introduce bias. As discussed in Section 11 of Chapter 22 and in van der Laan et al.&nbsp;(2026), we may express the trial-population ATE as</p>
+<p><span class="math display">\[\Psi_{\mathrm{RCT}}(P_0)=\widetilde\Psi(P_0)-\Psi^{\#}(P_0),\]</span></p>
+<p>where <span class="math inline">\(\widetilde\Psi\)</span> is a pooled-data treatment-effect component and <span class="math inline">\(\Psi^{\#}\)</span> corrects the bias induced by differences between trial and external outcomes. In particular, the parameter <span class="math inline">\(\Psi^{\#}\)</span> has an analytic form involving the conditional effect of trial enrollment on the outcome, give treatment and baseline covariates. We could then define an A-TMLE estimator that learns a working model for this conditional trial-enrollment effect.</p>
+<p>If the trial-external discrepancy is absent or captured by a parsimonious function, the external outcomes can contribute substantial precision. As that discrepancy becomes more complex, the working model must become richer and the potential efficiency gain shrinks. In the nonparametric limit, the procedure approaches the protection offered by an efficient trial-only analysis. This adaptivity makes external-data augmentation interesting, as the method attempts to adaptively borrow according to learned compatibility rather than assuming exchangeability of the data sources.</p>
+<p>Now, let’s look at an example of applying this A-TMLE estimator in practice.</p>
+</section>
+</section>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(atmle)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sl3)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmle)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20260716</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="the-trial-and-external-data" class="level2">
+<h2 class="anchored" data-anchor-id="the-trial-and-external-data">The trial and external data</h2>
+<p>The Dehejia-Wahba data files are available from the <a href="https://users.nber.org/~rdehejia/nswdata2.html">NBER data archive</a>. We use the NSW subset with 1974 earnings available, consisting of 185 randomized treated participants and 260 randomized controls. CPS3 contributes 429 additional untreated individuals.</p>
+<p>The following code chunk downloads the randomized NSW arms and CPS3.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the data-download code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://users.nber.org/~rdehejia/data/"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>variable_names <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"treat"</span>, <span class="st">"age"</span>, <span class="st">"educ"</span>, <span class="st">"black"</span>, <span class="st">"hispan"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"married"</span>, <span class="st">"nodegree"</span>, <span class="st">"re74"</span>, <span class="st">"re75"</span>, <span class="st">"re78"</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>W_nodes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"age"</span>, <span class="st">"educ"</span>, <span class="st">"black"</span>, <span class="st">"hispan"</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>             <span class="st">"married"</span>, <span class="st">"nodegree"</span>, <span class="st">"re74"</span>, <span class="st">"re75"</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>A_node <span class="ot">&lt;-</span> <span class="st">"treat"</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>Y_node <span class="ot">&lt;-</span> <span class="st">"re78"</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>S_node <span class="ot">&lt;-</span> <span class="st">"S"</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>read_lalonde_file <span class="ot">&lt;-</span> <span class="cf">function</span>(file) {</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="fu">paste0</span>(base_url, file))</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(data) <span class="ot">&lt;-</span> variable_names</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  data</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>rct <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_lalonde_file</span>(<span class="st">"nswre74_treated.txt"</span>),</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_lalonde_file</span>(<span class="st">"nswre74_control.txt"</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>rct<span class="sc">$</span>source <span class="ot">&lt;-</span> <span class="st">"NSW randomized trial"</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>rct<span class="sc">$</span>S <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>external <span class="ot">&lt;-</span> <span class="fu">read_lalonde_file</span>(<span class="st">"cps3_controls.txt"</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>external<span class="sc">$</span>source <span class="ot">&lt;-</span> <span class="st">"CPS3"</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>external<span class="sc">$</span>S <span class="ot">&lt;-</span> <span class="dv">0</span>L</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="variable-definitions" class="level3">
+<h3 class="anchored" data-anchor-id="variable-definitions">Variable definitions</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Role</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>S</code></td>
+<td>Data source</td>
+<td>1 for the randomized NSW trial; 0 for the external CPS data</td>
+</tr>
+<tr class="even">
+<td><code>treat</code></td>
+<td>Treatment</td>
+<td>1 for assignment to NSW job training; 0 for no NSW training</td>
+</tr>
+<tr class="odd">
+<td><code>re78</code></td>
+<td>Outcome</td>
+<td>Real earnings recorded in 1978</td>
+</tr>
+<tr class="even">
+<td><code>age</code></td>
+<td>Baseline covariate</td>
+<td>Age in years</td>
+</tr>
+<tr class="odd">
+<td><code>educ</code></td>
+<td>Baseline covariate</td>
+<td>Years of education</td>
+</tr>
+<tr class="even">
+<td><code>black</code>, <code>hispan</code></td>
+<td>Baseline covariates</td>
+<td>Race/ethnicity indicators</td>
+</tr>
+<tr class="odd">
+<td><code>married</code></td>
+<td>Baseline covariate</td>
+<td>Indicator for being married</td>
+</tr>
+<tr class="even">
+<td><code>nodegree</code></td>
+<td>Baseline covariate</td>
+<td>Indicator for not having a high-school degree</td>
+</tr>
+<tr class="odd">
+<td><code>re74</code>, <code>re75</code></td>
+<td>Baseline covariates</td>
+<td>Real earnings in 1974 and 1975</td>
+</tr>
+</tbody>
+</table>
+<p>An earnings value of zero is a valid observed value, not a missing value: the individual had no recorded earnings in that year. The distributions of <code>re74</code>, <code>re75</code>, and <code>re78</code> consequently have a point mass at zero and a long right tail.</p>
+</section>
+<section id="the-cps3-external-cohort" class="level3">
+<h3 class="anchored" data-anchor-id="the-cps3-external-cohort">The CPS3 external cohort</h3>
+<p>CPS3 contains 429 untreated, unemployed men whose 1975 income was below the poverty level. Its restriction to people with low recent earnings makes it more relevant to the NSW trial than an unrestricted population sample, but it does not make CPS3 exchangeable with the randomized controls. The NBER archive notes that the downloadable CPS3 file is a reconstruction that is similar, but not identical, to LaLonde’s original comparison sample.</p>
+</section>
+</section>
+<section id="descriptive-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="descriptive-comparison">Descriptive comparison</h2>
+<p>We first compare the randomized arms and CPS3 before fitting any estimator.</p>
+<div id="tbl-source-summary" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-source-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Trial and external-cohort summaries. Earnings are in the units supplied by the LaLonde files.
+</figcaption>
+<div aria-describedby="tbl-source-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>summarize_source <span class="ot">&lt;-</span> <span class="cf">function</span>(data, label) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sample =</span> label,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="fu">nrow</span>(data),</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Age, mean</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(data<span class="sc">$</span>age),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Black, %</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">100</span> <span class="sc">*</span> <span class="fu">mean</span>(data<span class="sc">$</span>black),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Married, %</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">100</span> <span class="sc">*</span> <span class="fu">mean</span>(data<span class="sc">$</span>married),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">RE74, mean</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(data<span class="sc">$</span>re74),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">RE75, mean</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(data<span class="sc">$</span>re75),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">RE78, mean</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(data<span class="sc">$</span>re78),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Zero RE78, %</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">100</span> <span class="sc">*</span> <span class="fu">mean</span>(data<span class="sc">$</span>re78 <span class="sc">==</span> <span class="dv">0</span>),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>source_summary <span class="ot">&lt;-</span> <span class="fu">do.call</span>(</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  rbind,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize_source</span>(rct[rct<span class="sc">$</span>treat <span class="sc">==</span> <span class="dv">1</span>, ], <span class="st">"NSW randomized treatment"</span>),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize_source</span>(rct[rct<span class="sc">$</span>treat <span class="sc">==</span> <span class="dv">0</span>, ], <span class="st">"NSW randomized control"</span>),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize_source</span>(external, <span class="st">"CPS3"</span>)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>source_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    Sample   N Age, mean Black, % Married, % RE74, mean
+1 NSW randomized treatment 185  25.81622 84.32432   18.91892   2095.574
+2   NSW randomized control 260  25.05385 82.69231   15.38462   2107.027
+3                     CPS3 429  28.03030 20.27972   51.28205   5619.237
+  RE75, mean RE78, mean Zero RE78, %
+1   1532.055   6349.144     24.32432
+2   1266.909   4554.801     35.38462
+3   2466.484   6984.170     22.84382</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<p>The CPS3 restriction produces a sample with low pre-program earnings, but it does not make the sources exchangeable. For example, the proportion Black and the marriage rate remain very different. This is the setting in which a data-integration estimator must distinguish useful outcome information from source-related bias.</p>
+<p>We can summarize the measured source differences with standardized mean differences (SMDs), comparing CPS3 with all randomized participants.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>source_smd <span class="ot">&lt;-</span> <span class="cf">function</span>(external, source_name) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  smd <span class="ot">&lt;-</span> <span class="fu">vapply</span>(W_nodes, <span class="cf">function</span>(variable) {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    pooled_sd <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>      (stats<span class="sc">::</span><span class="fu">var</span>(rct[[variable]]) <span class="sc">+</span> stats<span class="sc">::</span><span class="fu">var</span>(external[[variable]])) <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (pooled_sd <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="dv">0</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    (<span class="fu">mean</span>(external[[variable]]) <span class="sc">-</span> <span class="fu">mean</span>(rct[[variable]])) <span class="sc">/</span> pooled_sd</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">Source =</span> source_name,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Variable =</span> <span class="fu">factor</span>(<span class="fu">names</span>(smd), <span class="at">levels =</span> <span class="fu">rev</span>(W_nodes)),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Absolute_SMD =</span> <span class="fu">abs</span>(smd)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>smd_data <span class="ot">&lt;-</span> <span class="fu">source_smd</span>(external, <span class="st">"CPS3"</span>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(smd_data, <span class="fu">aes</span>(<span class="at">x =</span> Absolute_SMD, <span class="at">y =</span> Variable)) <span class="sc">+</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.1</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"grey55"</span>) <span class="sc">+</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.5</span>, <span class="at">color =</span> <span class="st">"#1F77B4"</span>) <span class="sc">+</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Absolute standardized mean difference"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-source-balance" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-source-balance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="lalonde_files/figure-html/fig-source-balance-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-source-balance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Absolute standardized mean differences between CPS3 and the randomized NSW sample.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The conventional 0.1 SMD line is only a descriptive reference. Small measured differences would not establish conditional exchangeability. Here, the remaining imbalances reinforce that CPS3 should not simply be treated as an extension of the randomized control arm.</p>
+</section>
+<section id="target-estimand" class="level2">
+<h2 class="anchored" data-anchor-id="target-estimand">Target estimand</h2>
+<p>Let <span class="math inline">\(S=1\)</span> identify randomized NSW participants, <span class="math inline">\(A\)</span> denote randomized assignment, <span class="math inline">\(W\)</span> denote the baseline covariates, and <span class="math inline">\(Y\)</span> denote 1978 earnings. Our target is the average treatment effect in the randomized-trial population:</p>
+<p><span class="math display">\[\psi_{\mathrm{RCT}}
+= E\{Y(1)-Y(0)\mid S=1\}.\]</span></p>
+<p>This choice matters. The <code>atmle</code> implementation also reports an estimand averaged over the pooled trial-plus-external covariate distribution (the same estimand considered in van der Laan et al.&nbsp;(2026)). That is a different target. Throughout this tutorial, we retain only the output row labeled <code>"Avg. over S=1"</code>, because it is directly comparable with the randomized benchmark.</p>
+</section>
+<section id="randomized-trial-benchmarks" class="level2">
+<h2 class="anchored" data-anchor-id="randomized-trial-benchmarks">Randomized-trial benchmarks</h2>
+<section id="unadjusted-randomized-estimator" class="level3">
+<h3 class="anchored" data-anchor-id="unadjusted-randomized-estimator">Unadjusted randomized estimator</h3>
+<p>Randomization identifies the trial-population effect without outcome modeling. The unadjusted estimator is the difference in mean 1978 earnings between the two randomized arms.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>rct_treated <span class="ot">&lt;-</span> rct[rct[[A_node]] <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>rct_control <span class="ot">&lt;-</span> rct[rct[[A_node]] <span class="sc">==</span> <span class="dv">0</span>, ]</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>unadjusted_psi <span class="ot">&lt;-</span> <span class="fu">mean</span>(rct_treated[[Y_node]]) <span class="sc">-</span> <span class="fu">mean</span>(rct_control[[Y_node]])</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>unadjusted_se <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">var</span>(rct_treated[[Y_node]]) <span class="sc">/</span> <span class="fu">nrow</span>(rct_treated) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">var</span>(rct_control[[Y_node]]) <span class="sc">/</span> <span class="fu">nrow</span>(rct_control)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>unadjusted_ci <span class="ot">&lt;-</span> unadjusted_psi <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)) <span class="sc">*</span> unadjusted_se</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>unadjusted_result <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimator =</span> <span class="st">"Unadjusted RCT"</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> unadjusted_psi,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">SE =</span> unadjusted_se,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lower =</span> unadjusted_ci[<span class="dv">1</span>],</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Upper =</span> unadjusted_ci[<span class="dv">2</span>]</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>unadjusted_result</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Estimator Estimate       SE    Lower    Upper
+1 Unadjusted RCT 1794.342 670.9965 479.2133 3109.471</code></pre>
+</div>
+</div>
+<p>The unadjusted estimate is 1794. It can be used as a benchmark for evaluating whether external-data integration is pulling the analysis away from the randomized evidence.</p>
+</section>
+<section id="covariate-adjusted-tmle-using-only-the-rct" class="level3">
+<h3 class="anchored" data-anchor-id="covariate-adjusted-tmle-using-only-the-rct">Covariate-adjusted TMLE using only the RCT</h3>
+<p>Next, we fit a conventional TMLE using only the 445 randomized participants. Baseline adjustment can improve precision without relying on any external outcomes.</p>
+<div class="cell" data-tbl-cap="Randomized-trial benchmark estimates">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20260716</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>rct_tmle_fit <span class="ot">&lt;-</span> tmle<span class="sc">::</span><span class="fu">tmle</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Y =</span> rct[[Y_node]],</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">A =</span> rct[[A_node]],</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">W =</span> rct[W_nodes],</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"gaussian"</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Q.SL.library =</span> <span class="fu">c</span>(<span class="st">"SL.mean"</span>, <span class="st">"SL.glm"</span>, <span class="st">"SL.glmnet"</span>),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">g.SL.library =</span> <span class="fu">c</span>(<span class="st">"SL.mean"</span>, <span class="st">"SL.glm"</span>, <span class="st">"SL.glmnet"</span>),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">V.Q =</span> <span class="dv">5</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">V.g =</span> <span class="dv">5</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>rct_tmle_result <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimator =</span> <span class="st">"TMLE: RCT only"</span>,</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> rct_tmle_fit<span class="sc">$</span>estimates<span class="sc">$</span>ATE<span class="sc">$</span>psi,</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">SE =</span> <span class="fu">sqrt</span>(rct_tmle_fit<span class="sc">$</span>estimates<span class="sc">$</span>ATE<span class="sc">$</span>var.psi),</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lower =</span> rct_tmle_fit<span class="sc">$</span>estimates<span class="sc">$</span>ATE<span class="sc">$</span>CI[<span class="dv">1</span>],</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">Upper =</span> rct_tmle_fit<span class="sc">$</span>estimates<span class="sc">$</span>ATE<span class="sc">$</span>CI[<span class="dv">2</span>]</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(unadjusted_result, rct_tmle_result)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Estimator Estimate       SE    Lower    Upper
+1 Unadjusted RCT 1794.342 670.9965 479.2133 3109.471
+2 TMLE: RCT only 1705.750 660.4374 411.3168 3000.184</code></pre>
+</div>
+</div>
+<p>The RCT-only TMLE remains close to the unadjusted randomized estimate but is more efficient due to covariate-adjustment. This gives us two trial-based reference points before any external outcomes enter the analysis.</p>
+</section>
+</section>
+<section id="what-happens-under-naive-pooling" class="level2">
+<h2 class="anchored" data-anchor-id="what-happens-under-naive-pooling">What happens under naive pooling?</h2>
+<p>A tempting shortcut is to append the CPS controls to the randomized controls and then compare the randomized treated arm with this enlarged control group. This procedure does not account for source differences.</p>
+<div id="tbl-naive-pooling" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-naive-pooling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Naive estimates obtained by pooling randomized and external controls. These are diagnostic comparisons, not recommended causal estimators.
+</figcaption>
+<div aria-describedby="tbl-naive-pooling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pooled_controls <span class="ot">&lt;-</span> <span class="fu">rbind</span>(rct_control, external)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>naive_pooling <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">External cohort</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"CPS3"</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">External N</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">nrow</span>(external),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">External mean RE78</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(external<span class="sc">$</span>re78),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Naively pooled estimate</span><span class="st">`</span> <span class="ot">=</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(rct_treated<span class="sc">$</span>re78) <span class="sc">-</span> <span class="fu">mean</span>(pooled_controls<span class="sc">$</span>re78),</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>naive_pooling</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  External cohort External N External mean RE78 Naively pooled estimate
+1            CPS3        429            6984.17                281.7167</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<p>Even with a deliberately restricted external cohort, naive pooling pulls the estimate sharply away from the randomized benchmark. Additional controls are useful only if the analysis accounts adequately for differences between their outcome distribution and that of randomized controls.</p>
+</section>
+<section id="a-tmle-data-integration" class="level2">
+<h2 class="anchored" data-anchor-id="a-tmle-data-integration">A-TMLE data integration</h2>
+<section id="super-learner-specification" class="level3">
+<h3 class="anchored" data-anchor-id="super-learner-specification">Super Learner specification</h3>
+<p>For the nuisance regressions, we use a convex Super Learner combining penalized generalized linear models, multivariate adaptive regression splines, and Bayesian additive regression trees. The non-negative least-squares metalearner assigns non-negative weights that sum to one.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>sl_library <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">learners =</span> <span class="fu">list</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">glmnet =</span> sl3<span class="sc">::</span>Lrnr_glmnet<span class="sc">$</span><span class="fu">new</span>(),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">earth =</span> sl3<span class="sc">::</span>Lrnr_earth<span class="sc">$</span><span class="fu">new</span>(),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">dbarts =</span> sl3<span class="sc">::</span>Lrnr_dbarts<span class="sc">$</span><span class="fu">new</span>()</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">metalearner =</span> sl3<span class="sc">::</span>Lrnr_nnls<span class="sc">$</span><span class="fu">new</span>(<span class="at">convex =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="reusable-fitting-function" class="level3">
+<h3 class="anchored" data-anchor-id="reusable-fitting-function">Reusable fitting function</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fit_atmle_source <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n_folds =</span> <span class="dv">5</span>L, <span class="at">seed =</span> <span class="dv">20260716</span>) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">rbind</span>(rct, external)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(seed)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> atmle<span class="sc">::</span>atmle_ate_fusion<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> data,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">S_node =</span> S_node,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">W_nodes =</span> W_nodes,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">A_node =</span> A_node,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">Y_node =</span> Y_node,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="st">"gaussian"</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_folds =</span> n_folds</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  fit<span class="sc">$</span><span class="fu">run</span>(</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">g_bar_method =</span> sl_library,</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">theta_method =</span> sl_library,</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pi_method =</span> sl_library,</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">Q_bar_method =</span> sl_library,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">A_cate_args =</span> <span class="fu">list</span>(</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">max_degree =</span> <span class="dv">3</span>L,</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">smoothness_orders =</span> <span class="dv">1</span>L,</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">num_knots =</span> <span class="dv">10</span>L</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">S_cate_args =</span> <span class="fu">list</span>(</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">max_degree =</span> <span class="dv">3</span>L,</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">smoothness_orders =</span> <span class="dv">1</span>L,</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">num_knots =</span> <span class="dv">10</span>L,</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>      <span class="at">force_A =</span> <span class="cn">TRUE</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> fit<span class="sc">$</span>results[fit<span class="sc">$</span>results<span class="sc">$</span>param <span class="sc">==</span> <span class="st">"Avg. over S=1"</span>, ]</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>  result<span class="sc">$</span>external_n <span class="ot">&lt;-</span> <span class="fu">sum</span>(data[[S_node]] <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>  result</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="fit-the-cps3-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="fit-the-cps3-analysis">Fit the CPS3 analysis</h3>
+<p>The CPS3 sample is small enough that we fit the estimator directly when rendering the tutorial.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>atmle_results <span class="ot">&lt;-</span> <span class="fu">fit_atmle_source</span>()</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">nrow</span>(atmle_results) <span class="sc">==</span> <span class="dv">1</span>L)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>For the trial-population estimand, the implementation reports</p>
+<p><span class="math display">\[\widehat\psi_{\text{A-TMLE}}
+= \widehat\psi_{\text{tilde}}
+- \widehat\psi_{\text{pound}},\]</span></p>
+<p>where the second component adapts to estimated trial–external discrepancies. Examining both components helps distinguish a stable final estimate from accidental agreement caused by two unstable pieces.</p>
+<div id="tbl-atmle-components" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-atmle-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: A-TMLE components for the trial-population estimand
+</figcaption>
+<div aria-describedby="tbl-atmle-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>atmle_components <span class="ot">&lt;-</span> atmle_results[</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">"external_n"</span>, <span class="st">"psi_tilde"</span>, <span class="st">"psi_pound"</span>, <span class="st">"psi"</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(atmle_components) <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"External N"</span>, <span class="st">"Tilde component"</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Pound component"</span>, <span class="st">"A-TMLE estimate"</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>atmle_components</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  External N Tilde component Pound component A-TMLE estimate
+2        429        1537.649       -214.2002         1751.85</code></pre>
+</div>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="comparing-all-estimators" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-all-estimators">Comparing all estimators</h2>
+<div id="tbl-estimator-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-estimator-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: RCT-only and A-TMLE estimates of the ATE in the randomized-trial population
+</figcaption>
+<div aria-describedby="tbl-estimator-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>atmle_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimator =</span> <span class="st">"A-TMLE + external controls"</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> atmle_results<span class="sc">$</span>psi,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">SE =</span> atmle_results<span class="sc">$</span>se,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lower =</span> atmle_results<span class="sc">$</span>lower,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Upper =</span> atmle_results<span class="sc">$</span>upper</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>comparison_results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  unadjusted_result,</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  rct_tmle_result,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  atmle_comparison</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>comparison_order <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Unadjusted RCT"</span>, <span class="st">"TMLE: RCT only"</span>,</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"A-TMLE + external controls"</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>comparison_results <span class="ot">&lt;-</span> comparison_results[</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">match</span>(comparison_order, comparison_results<span class="sc">$</span>Estimator),</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>comparison_results<span class="sc">$</span><span class="st">`</span><span class="at">SE ratio vs RCT TMLE</span><span class="st">`</span> <span class="ot">&lt;-</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  comparison_results<span class="sc">$</span>SE <span class="sc">/</span> rct_tmle_result<span class="sc">$</span>SE</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>comparison_results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   Estimator Estimate       SE    Lower    Upper
+1             Unadjusted RCT 1794.342 670.9965 479.2133 3109.471
+2             TMLE: RCT only 1705.750 660.4374 411.3168 3000.184
+3 A-TMLE + external controls 1751.850 632.8323 511.5210 2992.178
+  SE ratio vs RCT TMLE
+1            1.0159882
+2            1.0000000
+3            0.9582019</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>plot_results <span class="ot">&lt;-</span> comparison_results</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>plot_results<span class="sc">$</span>Estimator <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  plot_results<span class="sc">$</span>Estimator,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">levels =</span> <span class="fu">rev</span>(comparison_order)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(plot_results, <span class="fu">aes</span>(<span class="at">x =</span> Estimator, <span class="at">y =</span> Estimate)) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">yintercept =</span> unadjusted_psi,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="dv">2</span>,</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"grey45"</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Lower, <span class="at">ymax =</span> Upper), <span class="at">width =</span> <span class="fl">0.15</span>) <span class="sc">+</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> <span class="st">"#1F77B4"</span>) <span class="sc">+</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.12</span>))</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Estimated effect on 1978 earnings"</span>) <span class="sc">+</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-estimator-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-estimator-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="lalonde_files/figure-html/fig-estimator-comparison-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-estimator-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Point estimates and 95% Wald confidence intervals. The dashed line is the unadjusted randomized estimate.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The CPS3 A-TMLE estimate is 1752. It differs from the unadjusted randomized estimate by only 42 and from the RCT-only TMLE by 46. Its 95% confidence interval contains the unadjusted randomized point estimate. In contrast, naive pooling with the same CPS3 controls gives 282, illustrating why agreement cannot be achieved simply by appending external observations.</p>
+<p>The estimated standard error decreases from 660 for the RCT-only TMLE to 633 for A-TMLE with CPS3, a reduction of about 4.2%. In this analysis, A-TMLE therefore preserves the randomized-trial point estimate while producing a modest estimated precision gain. Although this gain seems small, it may be consequential when a scientific conclusion depends on whether a confidence interval crosses a decision threshold. For example, after establishing noninferiority in a randomized trial, even a modest precision gain from external-control augmentation could help determine whether the evidence also supports treatment superiority.</p>
+</section>
+<section id="scope-of-the-demonstration" class="level2">
+<h2 class="anchored" data-anchor-id="scope-of-the-demonstration">Scope of the demonstration</h2>
+<p>The LaLonde data are useful because they provide a randomized benchmark together with a nonexperimental comparison sample measured on common variables. This tutorial focuses on augmentation with external controls because that is the setting we aim to illustrate and is common in, for example, pharmaceutical applications; it is not a limitation of the A-TMLE framework, which can also incorporate external treatment arms. Differences between NSW and CPS—including differences in eligibility, study setting, and outcome-measurement procedures—are precisely the types of source discrepancies that the overall bias function <span class="math inline">\(\Psi^{\#}\)</span> is intended to capture. Rather than assuming that the trial and external outcomes are exchangeable, A-TMLE learns a working model for their conditional differences and estimates the corresponding bias correction. Finally, as in any real-data analysis, the true treatment effect is unknown. Nevertheless, under the randomized design, the unadjusted difference in means is an unbiased estimator of the trial treatment effect and therefore provides the best available empirical benchmark outside a simulation setting. For a full evaluation of A-TMLE, this real-data tutorial should be paired with simulations in which compatibility, overlap, and the true treatment effect can be controlled directly.</p>
+</section>
+<section id="reproducibility-information" class="level2">
+<h2 class="anchored" data-anchor-id="reproducibility-information">Reproducibility information</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Show package versions</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.5.2 (2025-10-31)
+Platform: aarch64-apple-darwin20
+Running under: macOS Tahoe 26.2
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+
+locale:
+[1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8
+
+time zone: America/Los_Angeles
+tzcode source: internal
+
+attached base packages:
+[1] splines   stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] tmle_2.1.1          SuperLearner_2.0-40 gam_1.22-7         
+ [4] foreach_1.5.2       nnls_1.6            glmnet_5.0         
+ [7] Matrix_1.7-4        sl3_1.4.5           ggplot2_4.0.3      
+[10] atmle_0.1.1        
+
+loaded via a namespace (and not attached):
+ [1] Rdpack_2.6.4          delayed_0.5.0         pROC_1.19.0.1        
+ [4] rlang_1.3.0           magrittr_2.0.4        otel_0.2.0           
+ [7] compiler_4.5.2        vctrs_0.7.3           reshape2_1.4.5       
+[10] stringr_1.6.0         pkgconfig_2.0.3       shape_1.4.6.1        
+[13] crayon_1.5.3          fastmap_1.2.0         backports_1.5.0      
+[16] labeling_0.4.3        rmarkdown_2.30        prodlim_2025.04.28   
+[19] purrr_1.2.0           xfun_0.55             WeightedROC_2020.1.31
+[22] jsonlite_2.0.0        progress_1.2.3        recipes_1.3.1        
+[25] uuid_1.2-1            parallel_4.5.2        prettyunits_1.2.0    
+[28] R6_2.6.1              stringi_1.8.7         RColorBrewer_1.1-3   
+[31] parallelly_1.46.0     rpart_4.1.24          lubridate_1.9.4      
+[34] Rcpp_1.1.1            assertthat_0.2.1      iterators_1.0.14     
+[37] hal9001_0.4.6         knitr_1.51            future.apply_1.20.1  
+[40] R.utils_2.13.0        nnet_7.3-20           igraph_2.2.1         
+[43] timechange_0.3.0      tidyselect_1.2.1      abind_1.4-8          
+[46] yaml_2.3.12           timeDate_4051.111     codetools_0.2-20     
+[49] listenv_0.10.0        lattice_0.22-7        tibble_3.3.0         
+[52] plyr_1.8.9            withr_3.0.2           S7_0.2.1             
+[55] ROCR_1.0-11           evaluate_1.0.5        future_1.68.0        
+[58] survival_3.8-3        pillar_1.11.1         checkmate_2.3.3      
+[61] stats4_4.5.2          generics_0.1.4        hms_1.1.4            
+[64] scales_1.4.0          origami_1.0.7         plotmo_3.7.0         
+[67] globals_0.18.0        class_7.3-23          glue_1.8.0           
+[70] tools_4.5.2           data.table_1.18.0     ModelMetrics_1.2.2.2 
+[73] rstackdeque_1.1.1     gower_1.0.2           dbarts_0.9-33        
+[76] visNetwork_2.1.4      grid_4.5.2            plotrix_3.8-13       
+[79] rbibutils_2.4         ipred_0.9-15          nlme_3.1-168         
+[82] BBmisc_1.13           earth_5.3.5           Formula_1.2-5        
+[85] cli_3.6.5             lava_1.8.2            dplyr_1.2.1          
+[88] gtable_0.3.6          R.methodsS3_1.8.2     digest_0.6.39        
+[91] caret_7.0-1           htmlwidgets_1.6.4     farver_2.1.2         
+[94] htmltools_0.5.9       R.oo_1.27.1           lifecycle_1.0.5      
+[97] hardhat_1.4.2         MASS_7.3-65          </code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
